@@ -1,7 +1,7 @@
-﻿# llamacpp Launcher
+# llamacpp Launcher
 
 A single-file **PyQt6 desktop GUI** for driving llama.cpp's command-line tools
-(`llama-server` and `llama-cli`) â€” GPU offloading, KV-cache quantisation, MoE
+(`llama-server` and `llama-cli`) — GPU offloading, KV-cache quantisation, MoE
 offloading, LAN binding and structured-output schemas, without hand-editing long
 shell invocations or hunting for the last good set of flags.
 
@@ -19,12 +19,12 @@ The UI is organised into four tabs so the common path stays uncluttered.
 | --- | --- |
 | llama.cpp binary + `.gguf` model pickers | (flavour auto-detected from the binary name) |
 | GPU layers (slider + spin box) | `-ngl` / `--n-gpu-layers` |
-| **Context size dropdown** â€” 512, 1k, 2k, 4k, 8k, 16k, 32k, 64k, 128k, 256k, 512k, 1M, plus **Customâ€¦** | `-c` / `--ctx-size` |
+| **Context size dropdown** — 512, 1k, 2k, 4k, 8k, 16k, 32k, 64k, 128k, 256k, 512k, 1M, plus **Custom…** | `-c` / `--ctx-size` |
 | CPU threads (slider + spin box) | `-t` / `--threads` |
 | Batch threads / batch size (optional) | `-tb`, `-b` |
 | Lock in RAM / disable mmap | `--mlock`, `--no-mmap` |
 
-*Customâ€¦* exists because a fixed preset list cannot represent a value loaded
+*Custom…* exists because a fixed preset list cannot represent a value loaded
 from a profile: selecting it reveals a spin box, so a profile holding e.g. 6144
 is not silently rounded to 8k.
 
@@ -48,11 +48,11 @@ Two details worth calling out, both verified against a real build:
 ### Server & Network
 | Control | Flag |
 | --- | --- |
-| **Expose on the local network** â€” binds every interface | `--host 0.0.0.0` |
+| **Expose on the local network** — binds every interface | `--host 0.0.0.0` |
 | Loopback only (the default) | `--host 127.0.0.1` |
 | Host / port | `--host`, `--port` |
 | API key, with **Generate** (random, copied to clipboard) | `--api-key` |
-| **Open Web UI in browser** + auto-open when ready | (no flag â€” opens the detected URL) |
+| **Open Web UI in browser** + auto-open when ready | (no flag — opens the detected URL) |
 
 **About `0.0.0.0`.** Binding every interface publishes the API *and the web UI*
 to your whole LAN, and modern llama.cpp does **not** require authentication by
@@ -61,8 +61,8 @@ when no key is set, and starting an unauthenticated exposed server requires
 explicit confirmation. With a key set, it starts without nagging.
 
 The **Web UI** button is enabled only once the server actually reports it is
-listening (`server is listening on â€¦`), and it rewrites a wildcard bind address
-to loopback â€” `http://0.0.0.0:8080` is a bind address, not something a browser
+listening (`server is listening on …`), and it rewrites a wildcard bind address
+to loopback — `http://0.0.0.0:8080` is a bind address, not something a browser
 can open, so the button would otherwise open a dead tab.
 
 ### Workflow
@@ -73,7 +73,7 @@ can open, so the button would otherwise open a dead tab.
 | Extra arguments, appended last so they override everything | (verbatim) |
 
 The schema box validates as you type (JSON error with line/column) and has
-*Format / validate* and *Load from fileâ€¦*. Schemas over ~8 KB are written to a
+*Format / validate* and *Load from file…*. Schemas over ~8 KB are written to a
 temporary file and passed via `--json-schema-file`, because Windows caps a whole
 command line at ~32 KB and schemas routinely exceed that; the temp file is
 deleted when the process exits.
@@ -93,7 +93,7 @@ py -m venv .venv
 Linux/macOS: `python3 -m venv .venv && .venv/bin/pip install -r requirements.txt`
 then `.venv/bin/python llamacpp_launcher.py`.
 
-You also need a llama.cpp build â€” point the binary picker at `llama-server` (for
+You also need a llama.cpp build — point the binary picker at `llama-server` (for
 the web UI / API) or `llama-cli` (interactive prompt). The binary's flavour is
 detected from its filename, and server-only flags are withheld from the CLI.
 
@@ -142,7 +142,7 @@ Presets are plain JSON in the per-user config directory:
     "host": "0.0.0.0",
     "port": 8080,
     "bind_all_interfaces": true,
-    "api_key": "sk-â€¦",
+    "api_key": "sk-…",
     "jinja": true,
     "json_schema": ""
   }
@@ -151,7 +151,7 @@ Presets are plain JSON in the per-user config directory:
 
 A JSON schema is stored in a **sidecar** file next to the preset
 (`mypreset.schema.json`) rather than embedded, so presets stay short and
-hand-readable. `Importâ€¦`/`Exportâ€¦` move presets anywhere on disk for sharing.
+hand-readable. `Import…`/`Export…` move presets anywhere on disk for sharing.
 `default.json` loads automatically at startup. v1 profiles from earlier builds
 still load.
 
@@ -163,28 +163,28 @@ Losing track of a model server is expensive: a mislaid `llama-server` keeps
 gigabytes of VRAM allocated and its TCP port bound, and the next launch then
 fails with a confusing "address already in use".
 
-1. **Refuses a second launch** â€” `start()` raises if a child is active, so the
+1. **Refuses a second launch** — `start()` raises if a child is active, so the
    previous server cannot be silently abandoned.
-2. **Uses `QProcess`, not `subprocess`** â€” the child is driven by the Qt event
+2. **Uses `QProcess`, not `subprocess`** — the child is driven by the Qt event
    loop: no reader threads, stdout/stderr read on separate channels so stderr
    can be colourised.
-3. **Isolates the child** â€” on POSIX it gets its own session
+3. **Isolates the child** — on POSIX it gets its own session
    (`os.setsid` via `setChildProcessModifier`), so the whole tree can be
    signalled and a Ctrl+C aimed at the GUI never reaches the model server. On
    Windows `taskkill /T /F` handles the tree.
-4. **Escalates on shutdown** â€” polite terminate first, then a forced process-group
+4. **Escalates on shutdown** — polite terminate first, then a forced process-group
    kill after a 4 s grace period.
-5. **Kills synchronously on exit** â€” `closeEvent` confirms, calls `kill()`, and
+5. **Kills synchronously on exit** — `closeEvent` confirms, calls `kill()`, and
    blocks on `waitForFinished`, so nothing survives the GUI. Critically, `kill()`
    still acts while a stop is already in flight; an earlier version returned
    early there and could orphan a process mid-shutdown.
-6. **Never uses a shell** â€” the argv list goes straight to the process, and
+6. **Never uses a shell** — the argv list goes straight to the process, and
    `extra_args` is split by an internal quote-aware tokeniser with no globbing or
    variable expansion.
 7. **Runs the child from its own directory** so side-by-side CUDA/Vulkan DLLs
    resolve.
-8. **Bounds the log buffer** â€” an unbounded terminal pane is a slow memory leak.
-9. **Distinguishes a stop from a crash** â€” a killed process reports `CrashExit`
+8. **Bounds the log buffer** — an unbounded terminal pane is a slow memory leak.
+9. **Distinguishes a stop from a crash** — a killed process reports `CrashExit`
    with a platform-specific code, so a user-requested stop is not reported as a
    failure.
 
@@ -219,11 +219,11 @@ Two safety nets in `tests/conftest.py` are deliberate:
 
 ## Known limitations
 
-* No chat/inference client â€” the API URL is opened in a browser instead.
+* No chat/inference client — the API URL is opened in a browser instead.
 * llama-cli runs interactively; the pane is read-only, so prompts must be driven
   from the server API. A stdin writer would be the natural next step.
 * The KV-cache dropdown sets K and V together. Use *Extra args* to set them
-  differently (`--cache-type-k q8_0 --cache-type-v f16`) â€” extra args win.
+  differently (`--cache-type-k q8_0 --cache-type-v f16`) — extra args win.
 * `--mlock` / `--no-mmap` are deprecated upstream; `--load-mode` is not surfaced.
 * No GPU-layer auto-detection from the GGUF header, so `-ngl` is still a guess
   the first time (the log reports how many layers were actually offloaded).
