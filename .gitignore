@@ -1,0 +1,14 @@
+# Virtualenv / build artefacts
+.venv/
+venv/
+build/
+dist/
+*.egg-info/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Local state: profiles live in the per-user config directory, but keep any
+# scratch schema files out of the repo if a preset is exported here.
+*.schema.json
+*.local.json

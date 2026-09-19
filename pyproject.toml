@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "llamacpp-launcher"
+version = "0.2.0"
+description = "A PyQt6 desktop GUI launcher for llamacpp (llama-server / llama-cli)"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = ["PyQt6>=6.5"]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.4"]
+
+[project.gui-scripts]
+llamacpp-launcher = "llamacpp_launcher:main"
+
+[tool.setuptools]
+py-modules = ["llamacpp_launcher"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+filterwarnings = ["ignore::DeprecationWarning"]
+# A Qt modal blocking in a native loop cannot be interrupted by faulthandler,
+# so pytest-timeout's thread-based kill is the safety net that always works.
+timeout = 120
+timeout_method = "thread"
